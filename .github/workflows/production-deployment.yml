@@ -1,0 +1,35 @@
+name: Production Deployment
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-to-production:
+    runs-on: ubuntu-latest
+    environment: production  # ✅ Simplified - no url needed
+    
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_IP }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest
+            docker stop calculator-app || true
+            docker rm calculator-app || true
+            docker run -d \
+              --name calculator-app \
+              -p 80:3000 \
+              --restart unless-stopped \
+              ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest
+            docker image prune -f
+
+      - name: Verify Deployment
+        run: |
+          echo "Application deployed successfully!"
+          echo "Access your app at: http://${{ secrets.PROD_IP }}"
