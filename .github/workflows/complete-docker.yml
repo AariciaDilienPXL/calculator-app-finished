@@ -28,4 +28,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/calculator-app:latest
+            ${{ secrets.DOCKER_USERNAME }}/calculator-app:${{ github.sha }}
